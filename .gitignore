@@ -1,0 +1,25 @@
+# Supabase CLI state and local secrets
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+supabase/functions/.env
+
+# Other local environment files
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.example
+
+# Python local/build artefacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+backend/.venv
+backend/README.md
+*.egg-info/
+
+# local dependencies
+node_modules/.
