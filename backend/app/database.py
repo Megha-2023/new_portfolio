@@ -52,7 +52,7 @@ class ContactRepository:
     def unsent_enquiries(self, limit: int = 100) -> list[StoredEnquiry]:
         response = (
             self.client.table("contact_enquiries")
-            .select("id,created_at,name,email,enquiry_type,message,language")
+            .select("id,created_at,name,email,enquiry_type,message,language,privacy_acknowledged_at")
             .eq("notification_sent", False)
             .order("created_at")
             .limit(limit)
@@ -70,4 +70,5 @@ class ContactRepository:
             enquiry_type=str(row["enquiry_type"]),
             message=str(row["message"]),
             language=str(row["language"]),
+            privacy_acknowledged_at=row.get("privacy_acknowledged_at"),
         )

@@ -1,4 +1,7 @@
 from datetime import UTC, datetime
+import base64
+from email import policy
+from email.parser import BytesParser
 from pathlib import Path
 
 import pytest
@@ -51,6 +54,7 @@ class FakeRepository:
             enquiry_type=submission.enquiry_type.value,
             message=submission.message,
             language=submission.language.value,
+            privacy_acknowledged_at=datetime.now(UTC),
         )
 
     def mark_notification_sent(self, enquiry_id: str) -> None:
@@ -67,7 +71,7 @@ class FakeNotifier:
 
     def send(self, enquiry: StoredEnquiry) -> None:
         if self.should_fail:
-            raise RuntimeError("simulated SMTP failure")
+            raise RuntimeError("simulated Gmail API failure")
         self.sent.append(enquiry)
 
 
@@ -86,9 +90,11 @@ def make_client(repository=None, notifier=None, domain_validator=None, trust_pro
     settings = Settings(
         supabase_url="https://example.supabase.co",
         supabase_secret_key="sb_secret_test_only",
+        gmail_client_id="test-client-id.apps.googleusercontent.com",
+        gmail_client_secret="test-client-secret",
+        gmail_refresh_token="test-refresh-token",
         gmail_sender_email="sender@example.com",
-        gmail_app_password="test-app-password",
-        contact_recipient_email="recipient@example.com",
+        contact_notification_to="recipient@example.com",
         rate_limit_salt="test-rate-limit-salt",
         allowed_origins="https://portfolio.example",
         trust_proxy_headers=trust_proxy_headers,
@@ -150,7 +156,7 @@ def test_rate_limit_returns_429_without_storage():
     assert repository.saved == []
 
 
-def test_smtp_failure_keeps_enquiry_and_returns_success():
+def test_gmail_api_failure_keeps_enquiry_and_returns_success():
     repository = FakeRepository()
     notifier = FakeNotifier(should_fail=True)
     response = make_client(repository, notifier).post("/api/contact", json=VALID_PAYLOAD)
@@ -189,9 +195,11 @@ def test_hash_is_salted_and_proxy_headers_are_opt_in():
 
 def test_notification_is_multipart_and_escapes_visitor_html():
     settings = Settings(
+        gmail_client_id="test-client-id.apps.googleusercontent.com",
+        gmail_client_secret="test-client-secret",
+        gmail_refresh_token="test-refresh-token",
         gmail_sender_email="sender@example.com",
-        gmail_app_password="unused",
-        contact_recipient_email="recipient@example.com",
+        contact_notification_to="recipient@example.com",
     )
     enquiry = StoredEnquiry(
         id="8dc579e0-cf32-4c09-a292-c825632b6a92",
@@ -201,6 +209,7 @@ def test_notification_is_multipart_and_escapes_visitor_html():
         enquiry_type="teaching",
         message="Hello <script>alert('x')</script>",
         language="fr",
+        privacy_acknowledged_at="2026-09-23T10:30:00+00:00",
     )
 
     message = GmailNotifier(settings)._build_message(enquiry)
@@ -212,6 +221,75 @@ def test_notification_is_multipart_and_escapes_visitor_html():
     assert enquiry.id in plain_text
     assert "<script>" not in html_text
     assert "&lt;script&gt;" in html_text
+    assert "Privacy acknowledgement: accepted" in plain_text
+    assert "2026-09-23T10:30:00+00:00" in plain_text
+
+
+def test_gmail_api_uses_oauth_https_and_sends_encoded_message(monkeypatch):
+    captured = {}
+
+    class FakeCredentials:
+        def __init__(self, **kwargs):
+            captured["credentials"] = kwargs
+
+        def refresh(self, request):
+            captured["refreshed"] = True
+
+    class FakeExecution:
+        def execute(self):
+            captured["executed"] = True
+            return {"id": "gmail-message-id"}
+
+    class FakeMessages:
+        def send(self, *, userId, body):
+            captured["user_id"] = userId
+            captured["body"] = body
+            return FakeExecution()
+
+    class FakeUsers:
+        def messages(self):
+            return FakeMessages()
+
+    class FakeService:
+        def users(self):
+            return FakeUsers()
+
+    monkeypatch.setattr("app.email_service.Credentials", FakeCredentials)
+    monkeypatch.setattr("app.email_service.Request", lambda: object())
+    monkeypatch.setattr(
+        "app.email_service.build",
+        lambda api, version, **kwargs: FakeService(),
+    )
+
+    settings = Settings(
+        gmail_client_id="test-client-id.apps.googleusercontent.com",
+        gmail_client_secret="test-client-secret",
+        gmail_refresh_token="test-refresh-token",
+        gmail_sender_email="sender@example.com",
+        contact_notification_to="recipient@example.com",
+    )
+    enquiry = StoredEnquiry(
+        id="8dc579e0-cf32-4c09-a292-c825632b6a92",
+        created_at="2026-09-23T10:29:00+00:00",
+        name="Megha Test",
+        email="visitor@examplemail.com",
+        enquiry_type="development",
+        message="A test message for the mocked Gmail API.",
+        language="en",
+        privacy_acknowledged_at="2026-09-23T10:29:00+00:00",
+    )
+
+    GmailNotifier(settings).send(enquiry)
+
+    raw = base64.urlsafe_b64decode(captured["body"]["raw"].encode("ascii"))
+    sent_message = BytesParser(policy=policy.default).parsebytes(raw)
+    assert captured["credentials"]["refresh_token"] == "test-refresh-token"
+    assert captured["credentials"]["token_uri"].startswith("https://")
+    assert captured["refreshed"] is True
+    assert captured["user_id"] == "me"
+    assert captured["executed"] is True
+    assert sent_message["To"] == "recipient@example.com"
+    assert sent_message["Reply-To"] == "visitor@examplemail.com"
 
 
 @pytest.mark.parametrize(

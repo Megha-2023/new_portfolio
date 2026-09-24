@@ -9,7 +9,10 @@ supabase/functions/.env
 .env.*
 !.env.example
 backend/.env
-backend/.env.example
+!backend/.env.example
+backend/client_secret*.json
+backend/credentials*.json
+backend/token*.json
 
 # Python local/build artefacts
 __pycache__/
@@ -18,8 +21,7 @@ __pycache__/
 .venv/
 venv/
 backend/.venv
-backend/README.md
 *.egg-info/
 
 # local dependencies
-node_modules/.
+node_modules/

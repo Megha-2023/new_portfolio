@@ -11,4 +11,4 @@ class StoredEnquiry:
     enquiry_type: str
     message: str
     language: str
-
+    privacy_acknowledged_at: datetime | str | None

@@ -1,0 +1,17 @@
+.env
+.env.*
+client_secret*.json
+credentials*.json
+token*.json
+
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
+tests/.pytest_cache/
+tests/
+
+.venv/
+venv/
+
+.git/
+.gitignore

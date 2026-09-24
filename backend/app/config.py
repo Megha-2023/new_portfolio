@@ -6,9 +6,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_secret_key: str = ""
+    gmail_client_id: str = ""
+    gmail_client_secret: str = ""
+    gmail_refresh_token: str = ""
     gmail_sender_email: str = ""
-    gmail_app_password: str = ""
-    contact_recipient_email: str = ""
+    contact_notification_to: str = ""
     rate_limit_salt: str = ""
     allowed_origins: str = ""
     trust_proxy_headers: bool = False
@@ -28,9 +30,11 @@ class Settings(BaseSettings):
         values = {
             "SUPABASE_URL": self.supabase_url,
             "SUPABASE_SECRET_KEY": self.supabase_secret_key,
+            "GMAIL_CLIENT_ID": self.gmail_client_id,
+            "GMAIL_CLIENT_SECRET": self.gmail_client_secret,
+            "GMAIL_REFRESH_TOKEN": self.gmail_refresh_token,
             "GMAIL_SENDER_EMAIL": self.gmail_sender_email,
-            "GMAIL_APP_PASSWORD": self.gmail_app_password,
-            "CONTACT_RECIPIENT_EMAIL": self.contact_recipient_email,
+            "CONTACT_NOTIFICATION_TO": self.contact_notification_to,
             "RATE_LIMIT_SALT": self.rate_limit_salt,
             "ALLOWED_ORIGINS": self.allowed_origins,
         }
