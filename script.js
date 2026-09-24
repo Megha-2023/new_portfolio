@@ -298,7 +298,7 @@ const translations = {
     careerTeachingTitle: 'Enseignante & responsable de département',
     careerTeachingPlace: 'Bhagwan Mahavir University · Inde',
     careerTeachingBody: 'Enseignement, programmes pédagogiques, évaluations, coordination académique et encadrement de projets étudiants.',
-    careerDeveloperTitle: 'Développeuse Python / DevOps · Alternance',
+    careerDeveloperTitle: 'Développeuse Python / DevOps',
     careerDeveloperPlace: 'Technology and Strategy · France',
     careerDeveloperBody: 'API REST Django, Docker, AWS, CI/CD, supervision et documentation au sein d’une entreprise française.',
     careerTrainerTitle: 'Formatrice Java',

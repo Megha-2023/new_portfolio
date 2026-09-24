@@ -27,7 +27,7 @@ Python FastAPI contact API
         |      - hashed-IP rate limits
         |      - 12-month retention job
         |
-        +--> Gmail SMTP
+        +--> Gmail API over HTTPS
                - owner notifications
                - visitor address used as Reply-To
 ```
@@ -47,7 +47,7 @@ Python FastAPI contact API
 - Python 3.12
 - FastAPI and Pydantic validation
 - Supabase Python client for PostgreSQL access
-- Gmail SMTP over SSL for notification delivery
+- Gmail API with OAuth 2.0 refresh-token authentication for notification delivery
 - CORS allow-list configured through environment variables
 - Health endpoint at `GET /health`
 - Contact endpoint at `POST /api/contact`
@@ -89,8 +89,8 @@ Python FastAPI contact API
 │   ├── .env.example
 │   └── README.md              # Detailed backend setup and deployment guide
 ├── supabase/migrations/       # Database schema, RLS and retention job
-├── Dockerfile
-└── docker-compose.yml
+├── backend/Dockerfile       # Render and local API container image
+└── docker-compose.yml       # Local container development
 ```
 
 ## Tests and validation
@@ -122,7 +122,7 @@ The API is then available at `http://127.0.0.1:8000`.
 ## Deployment outline
 
 1. Deploy the static frontend to GitHub Pages.
-2. Deploy the root `Dockerfile` to a Python/container hosting service.
+2. Deploy `backend` as a Render Python web service.
 3. Configure backend secrets through the hosting provider’s environment settings.
 4. Apply the Supabase migration to the production project.
 5. Add the production portfolio origin to `ALLOWED_ORIGINS`.
