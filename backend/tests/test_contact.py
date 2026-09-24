@@ -75,6 +75,11 @@ class FakeNotifier:
         self.sent.append(enquiry)
 
 
+class FailingRepository(FakeRepository):
+    def save_enquiry(self, submission):
+        raise RuntimeError("database failure containing sb_secret_should_not_escape")
+
+
 class FakeDomainValidator:
     def __init__(self, error=None) -> None:
         self.error = error
@@ -112,6 +117,21 @@ def test_health_endpoint():
     assert response.json() == {"status": "ok"}
 
 
+def test_automatic_api_documentation_is_not_public():
+    client = make_client()
+    assert client.get("/docs").status_code == 404
+    assert client.get("/redoc").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
+
+
+def test_security_headers_are_returned_and_contact_is_not_cached():
+    response = make_client().post("/api/contact", json=VALID_PAYLOAD)
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "no-referrer"
+    assert response.headers["cache-control"] == "no-store"
+
+
 def test_valid_enquiry_is_trimmed_stored_and_notified():
     repository = FakeRepository()
     notifier = FakeNotifier()
@@ -124,6 +144,50 @@ def test_valid_enquiry_is_trimmed_stored_and_notified():
     assert repository.saved[0].message == "A sufficiently detailed test enquiry."
     assert repository.notification_sent
     assert notifier.sent
+
+
+def test_valid_french_enquiry_is_stored_with_french_language():
+    repository = FakeRepository()
+    payload = {**VALID_PAYLOAD, "language": "fr", "message": "Une demande de test suffisamment détaillée."}
+    response = make_client(repository).post("/api/contact", json=payload)
+    assert response.status_code == 200
+    assert repository.saved[0].language.value == "fr"
+
+
+@pytest.mark.parametrize("missing_field", ["name", "email", "enquiry_type", "message", "language", "privacy_acknowledgement"])
+def test_missing_required_fields_are_rejected(missing_field):
+    repository = FakeRepository()
+    payload = {**VALID_PAYLOAD}
+    payload.pop(missing_field)
+    response = make_client(repository).post("/api/contact", json=payload)
+    assert response.status_code == 422
+    assert repository.saved == []
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("name", "   "), ("message", "          ")],
+)
+def test_whitespace_only_values_are_rejected(field, value):
+    repository = FakeRepository()
+    response = make_client(repository).post(
+        "/api/contact", json={**VALID_PAYLOAD, field: value}
+    )
+    assert response.status_code == 422
+    assert repository.saved == []
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("name", "N" * 101), ("email", f"user@{'a' * 250}.com"), ("message", "M" * 5001)],
+)
+def test_values_above_maximum_lengths_are_rejected(field, value):
+    repository = FakeRepository()
+    response = make_client(repository).post(
+        "/api/contact", json={**VALID_PAYLOAD, field: value}
+    )
+    assert response.status_code == 422
+    assert repository.saved == []
 
 
 def test_honeypot_is_silently_accepted_without_storage():
@@ -180,6 +244,51 @@ def test_cors_allows_configured_frontend_origin():
     )
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "https://portfolio.example"
+
+
+def test_cors_does_not_allow_unconfigured_origin():
+    response = make_client().options(
+        "/api/contact",
+        headers={
+            "Origin": "https://untrusted.example",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert "access-control-allow-origin" not in response.headers
+
+
+def test_storage_failure_returns_safe_error_without_notifying():
+    notifier = FakeNotifier()
+    response = make_client(FailingRepository(), notifier).post(
+        "/api/contact", json=VALID_PAYLOAD
+    )
+    assert response.status_code == 503
+    assert response.json() == {"error": "server_error"}
+    assert "sb_secret" not in response.text
+    assert notifier.sent == []
+
+
+def test_malformed_json_is_rejected_without_storage():
+    repository = FakeRepository()
+    response = make_client(repository).post(
+        "/api/contact",
+        content=b'{"name":',
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert repository.saved == []
+
+
+def test_unsupported_content_type_is_rejected_without_storage():
+    repository = FakeRepository()
+    response = make_client(repository).post(
+        "/api/contact",
+        content="plain text",
+        headers={"Content-Type": "text/plain"},
+    )
+    assert response.status_code == 422
+    assert repository.saved == []
 
 
 def test_hash_is_salted_and_proxy_headers_are_opt_in():
@@ -405,3 +514,5 @@ def test_frontend_has_bilingual_email_domain_mapping():
     assert "Veuillez utiliser une adresse e-mail fonctionnelle." in script
     assert "responseData.error === 'email_domain_unreachable'" in script
     assert "contactEmail.focus()" in script
+    assert "AbortController" in script
+    assert "formTimeout" in script

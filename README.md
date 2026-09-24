@@ -9,7 +9,8 @@ MLOps appears as complementary technical expertise rather than the primary comme
 
 ## Live website
 
-> Deployment URL: **To be added after deployment**
+> Production URL: **https://megha-panchal.fr/**
+> Current GitHub Pages URL: **https://megha-2023.github.io/new_portfolio/**
 
 ## Technical overview
 
@@ -122,12 +123,12 @@ The API is then available at `http://127.0.0.1:8000`.
 ## Deployment outline
 
 1. Deploy the static frontend to GitHub Pages.
-2. Deploy `backend` as a Render Python web service.
+2. Deploy `backend/Dockerfile` as a Render Docker Web Service.
 3. Configure backend secrets through the hosting provider’s environment settings.
 4. Apply the Supabase migration to the production project.
 5. Add the production portfolio origin to `ALLOWED_ORIGINS`.
-6. Replace the URL in `config.js` with the deployed HTTPS API endpoint.
-7. Add the public portfolio URL to the **Live website** section above.
+6. Keep `config.js` pointed to `https://api.megha-panchal.fr/api/contact`.
+7. Configure GitHub Pages and OVH DNS for the production/custom domains.
 
 See [backend/README.md](backend/README.md) for detailed database, Gmail, proxy, deployment and production-testing instructions.
 

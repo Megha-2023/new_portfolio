@@ -29,7 +29,13 @@ NotifierFactory = Callable[[Settings], GmailNotifier]
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     active_settings = settings or get_settings()
-    application = FastAPI(title="Megha Panchal portfolio contact API", version="1.0.0")
+    application = FastAPI(
+        title="Megha Panchal portfolio contact API",
+        version="1.0.0",
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+    )
     application.add_middleware(
         CORSMiddleware,
         allow_origins=active_settings.cors_origins,
@@ -42,6 +48,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.state.repository_factory = ContactRepository
     application.state.notifier_factory = GmailNotifier
     application.state.email_domain_validator = get_email_domain_validator()
+
+    @application.middleware("http")
+    async def add_security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+        response.headers["Permissions-Policy"] = "camera=(), geolocation=(), microphone=()"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        if request.url.path == "/api/contact":
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     @application.get("/health")
     async def health() -> dict[str, str]:

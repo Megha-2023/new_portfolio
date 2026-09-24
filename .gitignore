@@ -13,6 +13,11 @@ backend/.env
 backend/client_secret*.json
 backend/credentials*.json
 backend/token*.json
+client_secret*.json
+credentials*.json
+token*.json
+*.pem
+*.key
 
 # Python local/build artefacts
 __pycache__/
@@ -25,3 +30,5 @@ backend/.venv
 
 # local dependencies
 node_modules/
+.idea/
+.vscode/

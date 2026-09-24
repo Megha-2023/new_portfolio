@@ -162,10 +162,13 @@ const translations = {
     formValidationError: 'Please review your details and try again.',
     formRateLimit: 'Too many enquiries have been sent from this connection. Please try again in one hour. You may use contact@megha-panchal.fr once the mailbox is operational.',
     formError: 'The contact service is temporarily unavailable. Please try again. You may use contact@megha-panchal.fr once the mailbox is operational.',
+    formTimeout: 'The contact service is taking longer than expected. Please try again in a moment.',
     endpointMissing: 'The contact service is not configured yet. You may use contact@megha-panchal.fr once the mailbox is operational.',
     backToTop: 'Back to top ↑',
     footerRole: 'Python/backend developer & computer-science educator · France',
     privacy: 'Privacy',
+    privacyPolicyLink: 'Privacy policy',
+    termsLink: 'Terms',
     closePrivacy: 'Close privacy information',
     privacyEyebrow: 'Privacy',
     privacyTitle: 'Privacy information',
@@ -176,7 +179,7 @@ const translations = {
     privacyDataLabel: 'Data collected',
     privacyData: 'Name, email address, enquiry type and message.',
     privacyRetentionLabel: 'Retention',
-    privacyRetention: 'No longer than 12 months after the last exchange.',
+    privacyRetention: 'Ordinary contact enquiries are deleted 12 months after submission.',
     privacyRightsLabel: 'Your rights',
     privacyRights: 'Request access, correction or deletion using contact@megha-panchal.fr once the mailbox is operational.',
     privacyPreferenceLabel: 'Local preference',
@@ -348,10 +351,13 @@ const translations = {
     formValidationError: 'Veuillez vérifier les informations saisies, puis réessayer.',
     formRateLimit: 'Trop de demandes ont été envoyées depuis cette connexion. Veuillez réessayer dans une heure. Vous pourrez utiliser contact@megha-panchal.fr dès que la messagerie sera opérationnelle.',
     formError: 'Le service de contact est temporairement indisponible. Veuillez réessayer. Vous pourrez utiliser contact@megha-panchal.fr dès que la messagerie sera opérationnelle.',
+    formTimeout: 'Le service de contact met plus de temps que prévu à répondre. Veuillez réessayer dans un instant.',
     endpointMissing: 'Le service de contact n’est pas encore configuré. Vous pourrez utiliser contact@megha-panchal.fr dès que la messagerie sera opérationnelle.',
     backToTop: 'Retour en haut ↑',
     footerRole: 'Développeuse Python/backend & enseignante en informatique · France',
     privacy: 'Confidentialité',
+    privacyPolicyLink: 'Politique de confidentialité',
+    termsLink: 'Conditions',
     closePrivacy: 'Fermer les informations de confidentialité',
     privacyEyebrow: 'Confidentialité',
     privacyTitle: 'Informations de confidentialité',
@@ -362,7 +368,7 @@ const translations = {
     privacyDataLabel: 'Données collectées',
     privacyData: 'Nom, adresse e-mail, objet de la demande et message.',
     privacyRetentionLabel: 'Durée de conservation',
-    privacyRetention: 'Au maximum 12 mois après le dernier échange.',
+    privacyRetention: 'Les demandes de contact ordinaires sont supprimées 12 mois après leur envoi.',
     privacyRightsLabel: 'Vos droits',
     privacyRights: 'Vous pourrez demander l’accès, la rectification ou la suppression de vos données à l’adresse contact@megha-panchal.fr dès que la messagerie sera opérationnelle.',
     privacyPreferenceLabel: 'Préférence locale',
@@ -379,6 +385,9 @@ const menuLabel = document.querySelector('[data-menu-label]');
 const nav = document.querySelector('[data-nav]');
 const languageButtons = document.querySelectorAll('[data-language]');
 const metaDescription = document.querySelector('meta[name="description"]');
+const socialTitleMetadata = document.querySelectorAll('meta[property="og:title"], meta[name="twitter:title"]');
+const socialDescriptionMetadata = document.querySelectorAll('meta[property="og:description"], meta[name="twitter:description"]');
+const openGraphLocale = document.querySelector('meta[property="og:locale"]');
 const contactForm = document.querySelector('[data-contact-form]');
 const submitButton = document.querySelector('[data-submit-button]');
 const submitLabel = document.querySelector('[data-submit-label]');
@@ -397,6 +406,19 @@ let currentLanguage = document.documentElement.lang === 'fr' ? 'fr' : 'en';
 let lastPrivacyTrigger = null;
 
 const t = (key) => translations[currentLanguage][key] || translations.en[key] || key;
+
+const renderTranslationMarkup = (element, markup) => {
+  const template = document.createElement('template');
+  template.innerHTML = markup;
+  const unsafeElement = [...template.content.querySelectorAll('*')].some(
+    (node) => !['BR', 'EM'].includes(node.tagName) || node.attributes.length > 0
+  );
+  if (unsafeElement) {
+    element.textContent = markup;
+    return;
+  }
+  element.replaceChildren(template.content.cloneNode(true));
+};
 
 const projectLinkDefinitions = {
   django: [{ configKey: 'DJANGO_PROJECT_URL', labelKey: 'viewProject' }],
@@ -420,7 +442,8 @@ const safeExternalUrl = (configKey) => {
   if (!value) return null;
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
+    const isLocalHttp = url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname);
+    return url.protocol === 'https:' || isLocalHttp ? url.href : null;
   } catch (_) {
     return null;
   }
@@ -488,6 +511,12 @@ const updateMenuLabel = () => {
   menuLabel.textContent = t(isOpen ? 'closeNavigation' : 'openNavigation');
 };
 
+const updateMobileNavigationState = () => {
+  const isMobile = window.innerWidth <= 740;
+  const isOpen = nav.classList.contains('open');
+  nav.inert = isMobile && !isOpen;
+};
+
 const clearFormFeedback = () => {
   document.querySelectorAll('[data-error-for]').forEach((element) => { element.textContent = ''; });
   contactForm.querySelectorAll('[aria-invalid="true"]').forEach((element) => element.removeAttribute('aria-invalid'));
@@ -500,12 +529,15 @@ const applyLanguage = (language, persist = false) => {
   document.documentElement.lang = currentLanguage;
   document.title = t('metaTitle');
   metaDescription.setAttribute('content', t('metaDescription'));
+  socialTitleMetadata.forEach((element) => element.setAttribute('content', t('metaTitle')));
+  socialDescriptionMetadata.forEach((element) => element.setAttribute('content', t('metaDescription')));
+  openGraphLocale.setAttribute('content', currentLanguage === 'fr' ? 'fr_FR' : 'en_GB');
 
   document.querySelectorAll('[data-i18n]').forEach((element) => {
     element.textContent = t(element.dataset.i18n);
   });
   document.querySelectorAll('[data-i18n-html]').forEach((element) => {
-    element.innerHTML = t(element.dataset.i18nHtml);
+    renderTranslationMarkup(element, t(element.dataset.i18nHtml));
   });
   document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
     element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel));
@@ -539,6 +571,8 @@ menuButton.addEventListener('click', () => {
   nav.classList.toggle('open', !open);
   document.body.style.overflow = open ? '' : 'hidden';
   updateMenuLabel();
+  updateMobileNavigationState();
+  if (!open) nav.querySelector('a')?.focus();
 });
 
 const closeMenu = () => {
@@ -546,6 +580,7 @@ const closeMenu = () => {
   nav.classList.remove('open');
   document.body.style.overflow = '';
   updateMenuLabel();
+  updateMobileNavigationState();
 };
 
 nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
@@ -560,11 +595,25 @@ document.addEventListener('keydown', (event) => {
     closeMenu();
     menuButton.focus();
   }
+  if (event.key === 'Tab' && nav.classList.contains('open')) {
+    const focusable = [menuButton, ...nav.querySelectorAll('a, button:not([disabled])')];
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 });
 
 window.addEventListener('resize', () => {
   if (window.innerWidth > 740 && nav.classList.contains('open')) closeMenu();
+  updateMobileNavigationState();
 });
+updateMobileNavigationState();
 
 const validationKeyFor = (field) => {
   if (field.validity.valid) return null;
@@ -621,7 +670,7 @@ contactForm.addEventListener('submit', async (event) => {
 
   const endpoint = window.PORTFOLIO_CONFIG?.contactApiUrl?.trim() || contactForm.getAttribute('action');
   if (!endpoint || endpoint.includes('YOUR-PYTHON-BACKEND')) {
-    formStatus.innerHTML = t('endpointMissing');
+    formStatus.textContent = t('endpointMissing');
     formStatus.classList.add('error');
     return;
   }
@@ -629,6 +678,8 @@ contactForm.addEventListener('submit', async (event) => {
   submitButton.disabled = true;
   submitButton.setAttribute('aria-busy', 'true');
   submitLabel.textContent = t('formSubmitting');
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 75000);
 
   try {
     const payload = {
@@ -647,12 +698,13 @@ contactForm.addEventListener('submit', async (event) => {
         Accept: 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
     const responseData = await response.json().catch(() => ({}));
 
     if (response.status === 429) {
-      formStatus.innerHTML = t('formRateLimit');
+      formStatus.textContent = t('formRateLimit');
       formStatus.classList.add('error');
       return;
     }
@@ -683,10 +735,11 @@ contactForm.addEventListener('submit', async (event) => {
     formFields.hidden = true;
     successPanel.hidden = false;
     requestAnimationFrame(() => successPanel.focus({ preventScroll: true }));
-  } catch (_) {
-    formStatus.innerHTML = t('formError');
+  } catch (error) {
+    formStatus.textContent = t(error?.name === 'AbortError' ? 'formTimeout' : 'formError');
     formStatus.classList.add('error');
   } finally {
+    window.clearTimeout(timeoutId);
     submitButton.disabled = false;
     submitButton.removeAttribute('aria-busy');
     submitLabel.textContent = t('formSubmit');

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Privacy policy for Megha Panchal's professional portfolio and contact service." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://megha-panchal.fr/privacy.html" />
+  <link rel="stylesheet" href="legal.css" />
+  <title>Privacy Policy — Megha Panchal</title>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="legal-header">
+    <a class="legal-brand" href="index.html">Megha Panchal</a>
+    <nav class="legal-nav" aria-label="Legal page navigation">
+      <a href="#english" lang="en">English</a>
+      <a href="#francais" lang="fr">Français</a>
+      <a href="terms.html">Terms / Conditions</a>
+      <a href="index.html">Portfolio</a>
+    </nav>
+  </header>
+
+  <main class="legal-shell" id="content">
+    <header class="legal-intro">
+      <p class="legal-kicker">Privacy / Confidentialité</p>
+      <h1>Privacy policy</h1>
+      <p>This page explains how information is handled when you use the professional contact form and how the Gmail API is used for internal notifications.</p>
+    </header>
+
+    <article class="legal-language" id="english" lang="en">
+      <h2>English</h2>
+      <section class="legal-section"><h3>Controller</h3><p>Megha Panchal, independent professional based in France. Privacy enquiries can be sent to contact@megha-panchal.fr.</p></section>
+      <section class="legal-section"><h3>Purpose</h3><p>Information submitted through the contact form is used only to review and respond to professional enquiries concerning Python/backend development, teaching or technical training.</p></section>
+      <section class="legal-section"><h3>Data collected</h3><p>Name, email address, enquiry type, message, interface language, submission time and privacy-acknowledgement time are collected. A salted one-way hash derived from the connection IP address is retained temporarily for rate limiting; the raw IP address is not stored by the application.</p></section>
+      <section class="legal-section"><h3>Storage and retention</h3><p>Accepted enquiries are stored in Supabase. The current automated retention process deletes ordinary contact enquiries 12 months after submission and deletes rate-limit records after two hours.</p></section>
+      <section class="legal-section"><h3>Gmail API use</h3><div><p>The backend uses the Gmail API only to send an internal notification to Megha Panchal. Access is limited to the <code>gmail.send</code> permission. The application does not read, download, search or analyse mailbox contents and does not send an automatic confirmation to the visitor.</p><p>The visitor's validated email address is placed in the notification's Reply-To header. Contact-form content is therefore processed by Google for notification delivery and delivered to the configured OVHcloud Zimbra mailbox.</p></div></section>
+      <section class="legal-section"><h3>OAuth credentials</h3><p>The Google OAuth client secret and refresh token are stored only in the private backend environment on Render. They are not included in the public website, browser storage or repository.</p></section>
+      <section class="legal-section"><h3>Service providers</h3><ul><li>GitHub Pages hosts the public website.</li><li>Render hosts the private contact API.</li><li>Supabase stores accepted enquiries and rate-limit records.</li><li>Google provides Gmail API notification delivery.</li><li>OVHcloud provides the destination Zimbra mailbox and domain services.</li></ul></section>
+      <section class="legal-section"><h3>Local preference</h3><p>The selected EN/FR language may be stored locally in the browser under <code>preferred-language</code>. The site currently uses no advertising cookies, analytics or behavioural tracking.</p></section>
+      <section class="legal-section"><h3>Your choices and rights</h3><p>You may request access to, correction of or deletion of your contact information by writing to contact@megha-panchal.fr. The Google account owner can revoke the application's Gmail authorization from the Google Account security permissions page.</p></section>
+      <section class="legal-section"><h3>Security and changes</h3><p>Reasonable technical measures are used to restrict database access and protect credentials. This policy may be updated when the contact system, providers or legal requirements change.</p></section>
+      <p class="legal-note">Last updated: 24 September 2026. This document describes the technical processing implemented by the portfolio and is not a statement of legal certification.</p>
+    </article>
+
+    <article class="legal-language" id="francais" lang="fr">
+      <h2>Français</h2>
+      <section class="legal-section"><h3>Responsable du traitement</h3><p>Megha Panchal, professionnelle indépendante basée en France. Les demandes relatives aux données personnelles peuvent être adressées à contact@megha-panchal.fr.</p></section>
+      <section class="legal-section"><h3>Finalité</h3><p>Les informations transmises au moyen du formulaire sont utilisées uniquement pour examiner les demandes professionnelles concernant le développement Python/backend, l’enseignement ou la formation technique, et pour y répondre.</p></section>
+      <section class="legal-section"><h3>Données collectées</h3><p>Le nom, l’adresse e-mail, l’objet de la demande, le message, la langue de l’interface, la date d’envoi et la date de prise de connaissance des informations de confidentialité sont collectés. Une empreinte irréversible et salée dérivée de l’adresse IP de connexion est conservée temporairement pour limiter les envois ; l’application ne conserve pas l’adresse IP brute.</p></section>
+      <section class="legal-section"><h3>Conservation</h3><p>Les demandes acceptées sont conservées dans Supabase. Le mécanisme automatisé actuel supprime les demandes de contact ordinaires 12 mois après leur envoi et les données de limitation après deux heures.</p></section>
+      <section class="legal-section"><h3>Utilisation de l’API Gmail</h3><div><p>Le backend utilise l’API Gmail uniquement pour envoyer une notification interne à Megha Panchal. L’accès est limité à l’autorisation <code>gmail.send</code>. L’application ne lit, ne télécharge, ne recherche et n’analyse aucun contenu de boîte mail. Aucun accusé de réception automatique n’est envoyé au visiteur.</p><p>L’adresse e-mail validée du visiteur est placée dans l’en-tête Reply-To de la notification. Le contenu du formulaire est donc traité par Google pour l’envoi de la notification, puis transmis à la boîte Zimbra configurée chez OVHcloud.</p></div></section>
+      <section class="legal-section"><h3>Identifiants OAuth</h3><p>Le secret du client OAuth Google et le jeton d’actualisation sont conservés uniquement dans l’environnement privé du backend sur Render. Ils ne figurent ni dans le site public, ni dans le stockage du navigateur, ni dans le dépôt.</p></section>
+      <section class="legal-section"><h3>Prestataires</h3><ul><li>GitHub Pages héberge le site public.</li><li>Render héberge l’API privée de contact.</li><li>Supabase conserve les demandes acceptées et les données de limitation.</li><li>Google assure l’envoi des notifications par l’API Gmail.</li><li>OVHcloud fournit la boîte Zimbra de destination et les services de domaine.</li></ul></section>
+      <section class="legal-section"><h3>Préférence locale</h3><p>La langue EN/FR sélectionnée peut être enregistrée localement dans le navigateur sous la clé <code>preferred-language</code>. Le site n’utilise actuellement aucun cookie publicitaire, outil de mesure d’audience ou suivi comportemental.</p></section>
+      <section class="legal-section"><h3>Vos choix et vos droits</h3><p>Vous pouvez demander l’accès, la rectification ou la suppression de vos informations de contact en écrivant à contact@megha-panchal.fr. La titulaire du compte Google peut révoquer l’autorisation Gmail de l’application depuis les paramètres de sécurité du compte Google.</p></section>
+      <section class="legal-section"><h3>Sécurité et modifications</h3><p>Des mesures techniques raisonnables limitent l’accès à la base de données et protègent les identifiants. Cette politique pourra être mise à jour si le système, les prestataires ou les obligations applicables évoluent.</p></section>
+      <p class="legal-note">Dernière mise à jour : 24 septembre 2026. Ce document décrit les traitements techniques du portfolio et ne constitue pas une déclaration de certification juridique.</p>
+    </article>
+  </main>
+
+  <footer class="legal-footer"><div class="legal-footer-inner"><span>Megha Panchal · France</span><nav aria-label="Legal links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="index.html">Portfolio</a></nav></div></footer>
+</body>
+</html>
