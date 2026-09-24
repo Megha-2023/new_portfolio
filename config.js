@@ -1,5 +1,5 @@
 window.PORTFOLIO_CONFIG = {
-  contactApiUrl: " https://megha-portfolio-api.onrender.com/api/contact",
+  contactApiUrl: "https://api.megha-panchal.fr/api/contact",
   DJANGO_PROJECT_URL: "",
   ROAD_ACCIDENT_REPOSITORY_URL: "",
   FRANCE_RELOCATION_REPOSITORY_URL: "",

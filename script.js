@@ -112,7 +112,7 @@ const translations = {
     careerTeachingTitle: 'Lecturer & Head of Department',
     careerTeachingPlace: 'Bhagwan Mahavir University · India',
     careerTeachingBody: 'Teaching, curriculum, assessment, academic coordination and student-project supervision.',
-    careerDeveloperTitle: 'Python Developer / DevOps · Work-study programme',
+    careerDeveloperTitle: 'Python Developer / DevOps',
     careerDeveloperPlace: 'Technology and Strategy · France',
     careerDeveloperBody: 'Django REST APIs, Docker, AWS, CI/CD, monitoring and documentation in a French company.',
     careerTrainerTitle: 'Java Trainer',
