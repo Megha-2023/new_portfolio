@@ -1,5 +1,7 @@
 window.PORTFOLIO_CONFIG = {
   contactApiUrl: "https://YOUR-PYTHON-BACKEND/api/contact",
+  teachingVideoUrl: "",
+  cvUrl: "",
   DJANGO_PROJECT_URL: "",
   ROAD_ACCIDENT_REPOSITORY_URL: "",
   FRANCE_RELOCATION_REPOSITORY_URL: "",

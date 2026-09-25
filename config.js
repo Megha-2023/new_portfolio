@@ -1,5 +1,7 @@
 window.PORTFOLIO_CONFIG = {
   contactApiUrl: "https://api.megha-panchal.fr/api/contact",
+  teachingVideoUrl: "",
+  cvUrl: "",
   DJANGO_PROJECT_URL: "",
   ROAD_ACCIDENT_REPOSITORY_URL: "",
   FRANCE_RELOCATION_REPOSITORY_URL: "",
@@ -10,3 +12,5 @@ window.PORTFOLIO_CONFIG = {
   GITHUB_PROFILE_URL: "https://github.com/Megha-2023",
   X_PROFILE_URL: "https://x.com/mh_megha"
 };
+
+// """http://127.0,0.1/api/contact",

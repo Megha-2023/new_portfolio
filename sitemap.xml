@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://megha-panchal.fr/</loc>
-  </url>
-  <url>
-    <loc>https://megha-panchal.fr/privacy.html</loc>
-  </url>
-  <url>
-    <loc>https://megha-panchal.fr/terms.html</loc>
-  </url>
+  <url><loc>https://megha-panchal.fr/</loc></url>
+  <url><loc>https://megha-panchal.fr/teaching/</loc></url>
+  <url><loc>https://megha-panchal.fr/teaching/introduction/</loc></url>
+  <url><loc>https://megha-panchal.fr/projects/</loc></url>
+  <url><loc>https://megha-panchal.fr/projects/road-accident-mlops/</loc></url>
+  <url><loc>https://megha-panchal.fr/projects/django-aws/</loc></url>
+  <url><loc>https://megha-panchal.fr/projects/airflow-weather/</loc></url>
+  <url><loc>https://megha-panchal.fr/projects/bentoml-admission/</loc></url>
+  <url><loc>https://megha-panchal.fr/journey/</loc></url>
+  <url><loc>https://megha-panchal.fr/contact/</loc></url>
+  <url><loc>https://megha-panchal.fr/privacy.html</loc></url>
+  <url><loc>https://megha-panchal.fr/terms.html</loc></url>
 </urlset>

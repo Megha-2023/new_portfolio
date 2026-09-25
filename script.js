@@ -8,6 +8,10 @@ const translations = {
     closeNavigation: 'Close navigation',
     mainNavigation: 'Main navigation',
     languageSelector: 'Choose language',
+    navHome: 'Home',
+    navTeachingPedagogy: 'Teaching & Pedagogy',
+    navProjects: 'Projects',
+    navJourney: 'Journey / CV',
     navDevelopment: 'Development',
     navTeaching: 'Teaching',
     navWork: 'Work',
@@ -197,6 +201,10 @@ const translations = {
     closeNavigation: 'Fermer la navigation',
     mainNavigation: 'Navigation principale',
     languageSelector: 'Choisir la langue',
+    navHome: 'Accueil',
+    navTeachingPedagogy: 'Enseignement & Pédagogie',
+    navProjects: 'Projets',
+    navJourney: 'Parcours / CV',
     navDevelopment: 'Développement',
     navTeaching: 'Enseignement',
     navWork: 'Projets',
@@ -498,6 +506,47 @@ const renderOptionalLinks = () => {
   });
 };
 
+const renderConfigurableMedia = () => {
+  const videoFrame = document.querySelector('[data-video-frame]');
+  if (videoFrame) {
+    const configuredUrl = safeExternalUrl('teachingVideoUrl');
+    let embedUrl = null;
+    if (configuredUrl) {
+      const url = new URL(configuredUrl);
+      if (url.hostname === 'youtu.be') {
+        const id = url.pathname.split('/').filter(Boolean)[0];
+        if (id) embedUrl = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}`;
+      } else if (url.hostname.endsWith('youtube.com')) {
+        const id = url.searchParams.get('v') || url.pathname.split('/embed/')[1];
+        if (id) embedUrl = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id.split('/')[0])}`;
+      } else if (url.hostname.endsWith('vimeo.com')) {
+        const id = url.pathname.split('/').filter(Boolean).find((part) => /^\d+$/.test(part));
+        if (id) embedUrl = `https://player.vimeo.com/video/${id}`;
+      }
+    }
+    if (embedUrl) {
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.title = 'Teaching introduction video';
+      iframe.loading = 'lazy';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.allowFullscreen = true;
+      videoFrame.replaceChildren(iframe);
+      videoFrame.classList.add('has-video');
+    }
+  }
+
+  document.querySelectorAll('[data-cv-link]').forEach((link) => {
+    const href = safeExternalUrl('cvUrl');
+    if (!href) return;
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.removeAttribute('aria-disabled');
+    link.classList.remove('is-disabled');
+  });
+};
+
 const getInitialLanguage = () => {
   try {
     const stored = localStorage.getItem('preferred-language');
@@ -507,31 +556,37 @@ const getInitialLanguage = () => {
 };
 
 const updateMenuLabel = () => {
+  if (!menuButton || !menuLabel) return;
   const isOpen = menuButton.getAttribute('aria-expanded') === 'true';
   menuLabel.textContent = t(isOpen ? 'closeNavigation' : 'openNavigation');
 };
 
 const updateMobileNavigationState = () => {
-  const isMobile = window.innerWidth <= 740;
+  if (!nav) return;
+  const isMobile = window.innerWidth <= 900;
   const isOpen = nav.classList.contains('open');
   nav.inert = isMobile && !isOpen;
 };
 
 const clearFormFeedback = () => {
   document.querySelectorAll('[data-error-for]').forEach((element) => { element.textContent = ''; });
-  contactForm.querySelectorAll('[aria-invalid="true"]').forEach((element) => element.removeAttribute('aria-invalid'));
-  formStatus.textContent = '';
-  formStatus.className = 'form-status';
+  contactForm?.querySelectorAll('[aria-invalid="true"]').forEach((element) => element.removeAttribute('aria-invalid'));
+  if (formStatus) {
+    formStatus.textContent = '';
+    formStatus.className = 'form-status';
+  }
 };
 
 const applyLanguage = (language, persist = false) => {
   currentLanguage = language === 'fr' ? 'fr' : 'en';
   document.documentElement.lang = currentLanguage;
-  document.title = t('metaTitle');
-  metaDescription.setAttribute('content', t('metaDescription'));
-  socialTitleMetadata.forEach((element) => element.setAttribute('content', t('metaTitle')));
-  socialDescriptionMetadata.forEach((element) => element.setAttribute('content', t('metaDescription')));
-  openGraphLocale.setAttribute('content', currentLanguage === 'fr' ? 'fr_FR' : 'en_GB');
+  if (document.documentElement.hasAttribute('data-dynamic-meta')) {
+    document.title = t('metaTitle');
+    metaDescription?.setAttribute('content', t('metaDescription'));
+    socialTitleMetadata.forEach((element) => element.setAttribute('content', t('metaTitle')));
+    socialDescriptionMetadata.forEach((element) => element.setAttribute('content', t('metaDescription')));
+  }
+  openGraphLocale?.setAttribute('content', currentLanguage === 'fr' ? 'fr_FR' : 'en_GB');
 
   document.querySelectorAll('[data-i18n]').forEach((element) => {
     element.textContent = t(element.dataset.i18n);
@@ -545,6 +600,12 @@ const applyLanguage = (language, persist = false) => {
   document.querySelectorAll('[data-i18n-alt]').forEach((element) => {
     element.setAttribute('alt', t(element.dataset.i18nAlt));
   });
+  document.querySelectorAll('[data-en]').forEach((element) => {
+    element.textContent = currentLanguage === 'fr' ? element.dataset.fr : element.dataset.en;
+  });
+  document.querySelectorAll('[data-en-html]').forEach((element) => {
+    renderTranslationMarkup(element, currentLanguage === 'fr' ? element.dataset.frHtml : element.dataset.enHtml);
+  });
 
   languageButtons.forEach((button) => {
     const isActive = button.dataset.language === currentLanguage;
@@ -552,7 +613,7 @@ const applyLanguage = (language, persist = false) => {
     button.classList.toggle('active', isActive);
   });
 
-  formLanguage.value = currentLanguage;
+  if (formLanguage) formLanguage.value = currentLanguage;
   updateMenuLabel();
   clearFormFeedback();
 
@@ -561,11 +622,11 @@ const applyLanguage = (language, persist = false) => {
   }
 };
 
-const updateHeader = () => header.classList.toggle('scrolled', window.scrollY > 20);
+const updateHeader = () => header?.classList.toggle('scrolled', window.scrollY > 20);
 updateHeader();
 window.addEventListener('scroll', updateHeader, { passive: true });
 
-menuButton.addEventListener('click', () => {
+menuButton?.addEventListener('click', () => {
   const open = menuButton.getAttribute('aria-expanded') === 'true';
   menuButton.setAttribute('aria-expanded', String(!open));
   nav.classList.toggle('open', !open);
@@ -576,6 +637,7 @@ menuButton.addEventListener('click', () => {
 });
 
 const closeMenu = () => {
+  if (!menuButton || !nav) return;
   menuButton.setAttribute('aria-expanded', 'false');
   nav.classList.remove('open');
   document.body.style.overflow = '';
@@ -583,7 +645,7 @@ const closeMenu = () => {
   updateMobileNavigationState();
 };
 
-nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+nav?.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
 languageButtons.forEach((button) => {
   button.addEventListener('click', () => {
     applyLanguage(button.dataset.language, true);
@@ -591,11 +653,11 @@ languageButtons.forEach((button) => {
 });
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && nav.classList.contains('open')) {
+  if (event.key === 'Escape' && nav?.classList.contains('open')) {
     closeMenu();
     menuButton.focus();
   }
-  if (event.key === 'Tab' && nav.classList.contains('open')) {
+  if (event.key === 'Tab' && nav?.classList.contains('open')) {
     const focusable = [menuButton, ...nav.querySelectorAll('a, button:not([disabled])')];
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -610,7 +672,7 @@ document.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('resize', () => {
-  if (window.innerWidth > 740 && nav.classList.contains('open')) closeMenu();
+  if (window.innerWidth > 900 && nav?.classList.contains('open')) closeMenu();
   updateMobileNavigationState();
 });
 updateMobileNavigationState();
@@ -648,14 +710,14 @@ const validateField = (field) => {
   return !errorKey;
 };
 
-const requiredFields = [...contactForm.querySelectorAll('[required]')];
+const requiredFields = contactForm ? [...contactForm.querySelectorAll('[required]')] : [];
 requiredFields.forEach((field) => {
   const eventName = field.type === 'checkbox' || field.tagName === 'SELECT' ? 'change' : 'input';
   field.addEventListener(eventName, () => validateField(field));
   field.addEventListener('blur', () => validateField(field));
 });
 
-contactForm.addEventListener('submit', async (event) => {
+contactForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   formStatus.textContent = '';
   formStatus.className = 'form-status';
@@ -746,7 +808,7 @@ contactForm.addEventListener('submit', async (event) => {
   }
 });
 
-sendAnotherButton.addEventListener('click', () => {
+sendAnotherButton?.addEventListener('click', () => {
   successPanel.hidden = true;
   formFields.hidden = false;
   contactForm.style.minHeight = '';
@@ -757,6 +819,7 @@ sendAnotherButton.addEventListener('click', () => {
 
 privacyOpeners.forEach((opener) => {
   opener.addEventListener('click', () => {
+    if (!privacyDialog || !privacyCloser) return;
     lastPrivacyTrigger = opener;
     if (typeof privacyDialog.showModal === 'function') privacyDialog.showModal();
     else privacyDialog.setAttribute('open', '');
@@ -765,17 +828,27 @@ privacyOpeners.forEach((opener) => {
 });
 
 const closePrivacy = () => {
+  if (!privacyDialog) return;
   if (typeof privacyDialog.close === 'function') privacyDialog.close();
   else privacyDialog.removeAttribute('open');
   lastPrivacyTrigger?.focus();
 };
 
-privacyCloser.addEventListener('click', closePrivacy);
-privacyDialog.addEventListener('click', (event) => {
+privacyCloser?.addEventListener('click', closePrivacy);
+privacyDialog?.addEventListener('click', (event) => {
   if (event.target === privacyDialog) closePrivacy();
 });
 
 renderOptionalLinks();
+renderConfigurableMedia();
+
+const heroCredentials = document.querySelector('.hero-credentials');
+if (heroCredentials) {
+  heroCredentials.innerHTML = `
+    <span><strong>16+</strong><small data-en="Years in higher education" data-fr="Années dans l’enseignement supérieur">Years in higher education</small></span>
+    <span><strong data-en="2 years" data-fr="2 ans">2 years</strong><small data-en="Python / backend experience in France" data-fr="Expérience Python / backend en France">Python / backend experience in France</small></span>
+    <span><strong data-en="Computer science" data-fr="Informatique">Computer science</strong><small data-en="Teaching + software practice" data-fr="Enseignement + pratique logicielle">Teaching + software practice</small></span>`;
+}
 
 try {
   applyLanguage(getInitialLanguage());
